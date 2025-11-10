@@ -10,8 +10,8 @@ The goal was to create a reliable, easily managed server environment on a Debian
 
 | Component | Details |
 |------------|----------|
-| **CPU** | Intel Core i5-8400 (6 Cores / 6 Threads) |
-| **RAM** | 16 GB DDR4 |
+| **CPU** | Intel Core i5-7500 (4 Cores / 4 Threads) |
+| **RAM** | 8 GB DDR4 |
 | **Storage** | 128 GB SSD |
 | **Operating System** | Debian 13 (Trixie) – Minimal / Headless |
 | **Network** | Gigabit LAN |
