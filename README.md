@@ -1,20 +1,141 @@
-# 🎮 Pixelmon Server Setup (AMP + Playit.gg)
+# 🎮 Pixelmon Minecraft Server (AMP + Playit.gg) – Debian 13 Build
 
-This is my full single-section write-up for creating a Pixelmon Minecraft server using CubeCoders AMP for management and Playit.gg for public access — no port forwarding required. I started with a fresh Debian install 🐧 and set a static IP (192.168.1.236). After updating with `sudo apt update && sudo apt upgrade -y`, I installed AMP by running `curl -sSL https://getamp.sh | bash`. Then I accessed AMP in my browser at `https://192.168.1.236:8080`, logged in, and activated my license under Configuration → New Instance Defaults → License Key. I created a new Minecraft Java Edition (Forge) instance called “Pixelmon,” opened Configuration → Server and Startup, set Server Type to Forge, Release Stream to Stable, and Forge Version to 36.2.40 for Minecraft 1.16.5, then clicked Download/Update to install it ⚙️.
+📘 **Project Overview**  
+This project documents the full setup, configuration, and optimization process for hosting a **Pixelmon Reforged Minecraft server** using **CubeCoders AMP** for management and **Playit.gg** for secure, public connectivity — no port forwarding required.  
+The goal was to create a reliable, easily managed server environment on a Debian 13 system, capable of supporting modded gameplay with monitoring, backups, and external access.
 
-Because Pixelmon works best on Java 8–11 ☕, I installed Java 11 (Temurin) with `sudo apt install wget gnupg apt-transport-https -y`, then added the Adoptium repo and installed Temurin-11-JRE. I found the path with `readlink -f $(which java)` and set it in AMP under Configuration → Java and Memory → Java Path (`/usr/lib/jvm/temurin-11-jre-amd64/bin/java`). After saving and restarting, the server launched successfully.
+---
 
-Next, I downloaded Pixelmon Reforged (1.16.5) from [https://reforged.gg](https://reforged.gg) 🧩, opened AMP’s File Manager, went into the `/mods` folder, and uploaded the Pixelmon JAR (for example, `Pixelmon-1.16.5-9.1.11-universal.jar`). I restarted the server and waited for the console to show `[Pixelmon] Pixelmon Reforged initializing...` followed by “Done!”, confirming it was ready.
+🧠 **System Specs**
 
-To make the server public without touching my router, I installed Playit.gg 🌐 using `sudo apt install playit -y` and started it with `playit`. It gave me a link like `https://playit.gg/claim/XXXX`; I opened it in my browser to link my server. On the Playit dashboard, I created a tunnel with Protocol = TCP, Local Address = 192.168.1.236, and Local Port = 25565. Playit generated a public address (like `national-kenneth.na.joinmc.link`) that anyone could use to connect 🎉. If it ever got stuck asking to claim again, I deleted its data with `rm -rf ~/.playit` and re-linked. When Playit showed “Connected to Playit network” and listed my tunnel mapping to 192.168.1.236:25565, I knew it was live ✅.
+| Component | Details |
+|------------|----------|
+| **CPU** | Intel Core i5-8400 (6 Cores / 6 Threads) |
+| **RAM** | 16 GB DDR4 |
+| **Storage** | 128 GB SSD |
+| **Operating System** | Debian 13 (Trixie) – Minimal / Headless |
+| **Network** | Gigabit LAN |
+| **Server Purpose** | Pixelmon Reforged Modded Minecraft Server |
 
-To increase Pokémon spawn rates 🐾, I opened AMP’s File Manager → config → pixelmon → spawning.yml and changed `global: spawnRate: 1.0` to `global: spawnRate: 2.0`, doubling the spawns. After saving and restarting, I confirmed spawns were higher with `/checkspawns` in-game. For backups 💾, I always went to AMP → Backups → Create New Backup before shutting down. AMP created a ZIP of the entire world, mods, and configs. Sometimes I manually copied backups with `cp /home/AMP_Instances/Pixelmon/backups/*.zip /home/harrison/backups/`. You can also automate this under Configuration → Scheduled Tasks → Add New Task → Perform Backup.
+---
 
-For monitoring 🧊, I installed `lm-sensors` with `sudo apt install lm-sensors -y`, ran `sudo sensors-detect`, and used `sensors` to check temps — most CPUs idled around 40°C–45°C. I used `watch -n 2 sensors` for live updates and installed Netdata (`bash <(curl -Ss https://my-netdata.io/kickstart.sh)`) to view system performance at `http://192.168.1.236:19999`. This helped track CPU, RAM, and temperature while the server was running.
+⚙️ **Setup Process**
 
-If something broke, here’s what I learned from troubleshooting 🔧: “Connection forcibly closed” meant Playit wasn’t connected or the server wasn’t fully started; Java errors meant AMP wasn’t using Java 11; missing mods meant the Pixelmon JAR wasn’t in `/mods`; and low spawn rates meant `spawnRate` needed a bump. For performance, I set Java memory in AMP to Initial = 2G and Max = 4–6G to keep it smooth.
+1. **OS Preparation**  
+   - Installed Debian 13 headless with SSH enabled.  
+   - Set static IP: `192.168.1.236`.  
+   - Updated packages using `sudo apt update && sudo apt upgrade -y`.
 
-In the end, this setup gave me a stable, fully-managed Pixelmon Reforged server controlled through AMP’s web dashboard, accessible worldwide via Playit.gg, with backups, monitoring, and proper Java configuration — all running efficiently on Debian. It’s simple, fast, and perfect for hosting with friends or testing mods without worrying about network issues. 🚀  
+2. **Installed AMP (Application Management Panel)**  
+   - Installed via script:  
+     ```bash
+     curl -sSL https://getamp.sh | bash
+     ```  
+   - Accessed AMP dashboard at `https://192.168.1.236:8080`.  
+   - Activated license and created a new **Minecraft Java (Forge)** instance.  
+   - Selected **Forge Version 36.2.40 (Minecraft 1.16.5)**.  
 
-✨ Created by **Harrison Lurgio** — MIS + Cybersecurity Student, Florida Atlantic University  
-🔗 GitHub: [https://github.com/harrisonlurgio](https://github.com/harrisonlurgio)
+3. **Configured Java 11 (Temurin)**  
+   - Installed Java 11:  
+     ```bash
+     sudo apt install wget gnupg apt-transport-https -y
+     ```  
+   - Added Adoptium repo and installed `temurin-11-jre`.  
+   - Set Java path in AMP to `/usr/lib/jvm/temurin-11-jre-amd64/bin/java`.
+
+4. **Installed Pixelmon Mod**  
+   - Downloaded Pixelmon Reforged (1.16.5) from [https://reforged.gg](https://reforged.gg).  
+   - Uploaded the `.jar` file (e.g., `Pixelmon-1.16.5-9.1.11-universal.jar`) to AMP → `/mods`.  
+   - Restarted instance and confirmed `[Pixelmon] Pixelmon Reforged initializing...`.
+
+5. **Configured Playit.gg (Public Access)**  
+   - Installed Playit:  
+     ```bash
+     sudo apt install playit -y
+     playit
+     ```  
+   - Claimed the tunnel and linked it to the server (TCP → `192.168.1.236:25565`).  
+   - Received a public domain like `yourname.na.joinmc.link`.  
+   - Verified tunnel was active and reachable globally.
+
+6. **Spawn Rate & Optimization Tweaks**  
+   - Modified `config/pixelmon/spawning.yml`  
+     ```yaml
+     global:
+       spawnRate: 2.0
+     ```  
+   - Restarted server and confirmed higher spawn frequency via `/checkspawns`.
+
+7. **Backups & Automation**  
+   - Used AMP’s built-in Backups → “Create New Backup.”  
+   - Created a recurring backup schedule under Configuration → Scheduled Tasks.  
+   - Manual backups stored at `/home/harrison/backups/`.
+
+8. **System Monitoring**  
+   - Installed `lm-sensors` and `Netdata` for hardware and performance tracking.  
+     - `sudo apt install lm-sensors -y`  
+     - `bash <(curl -Ss https://my-netdata.io/kickstart.sh)`  
+   - Monitored at `http://192.168.1.236:19999`.
+
+---
+
+🔧 **Issues & Troubleshooting**
+
+- **Issue:** Playit tunnel kept asking to claim again.  
+  **Fix:** Removed old data with `rm -rf ~/.playit` and reconnected.  
+
+- **Issue:** Java errors or crash loops.  
+  **Fix:** Verified AMP instance was using Java 11 (Temurin).  
+
+- **Issue:** Missing mod dependencies.  
+  **Fix:** Confirmed Pixelmon `.jar` was uploaded to `/mods`.  
+
+- **Issue:** Low spawn rates.  
+  **Fix:** Increased global `spawnRate` to 2.0 in Pixelmon config.  
+
+- **Issue:** Overheating under load.  
+  **Fix:** Installed `lm-sensors`, confirmed CPU temps stable (~45°C).  
+
+---
+
+🚀 **Final Configuration**
+
+- Debian 13 headless environment  
+- AMP-managed Minecraft Forge server  
+- Pixelmon Reforged 1.16.5  
+- Playit.gg public tunnel  
+- Automated backups and monitoring  
+- Secure web management via AMP dashboard  
+
+---
+
+🧠 **Key Takeaways**
+
+- Learned advanced AMP configuration and modded server management.  
+- Implemented secure tunneling via Playit.gg without router access.  
+- Gained experience in headless Debian setup and performance monitoring.  
+- Practiced network troubleshooting and remote access control.  
+- Improved Linux administration and system automation skills.  
+
+---
+
+📈 **Future Improvements**
+
+- Add scheduled reboots and alert notifications in AMP.  
+- Integrate Grafana dashboards for long-term monitoring.  
+- Migrate backups to offsite or NAS storage.  
+- Experiment with modpacks and plugin isolation testing.  
+
+---
+
+🏁 **Final Thoughts**
+
+This project combined Linux system administration, network tunneling, and modded server management into one cohesive build.  
+From installation to optimization, it showcased the power of AMP and Playit.gg for managing complex game environments without router access.  
+The end result is a reliable, secure, and fully-automated Pixelmon server that runs efficiently on Debian — perfect for long-term multiplayer hosting and hands-on experimentation.
+
+---
+
+✨ **Created by Harrison Lurgio**  
+MIS + Cybersecurity Student @ Florida Atlantic University  
+🔗 GitHub: [https://github.com/lurgioh](https://github.com/lurgioh)
